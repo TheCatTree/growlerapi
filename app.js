@@ -109,6 +109,7 @@ router.route('/authenticate')
                     res.json({
                         success: true,
                         message: 'Enjoy your token!',
+                        id: user._id,
                         token: token
                     });
 
@@ -117,6 +118,39 @@ router.route('/authenticate')
 
         })
     });
+
+///////////////////////we need some middle wear before these routes in order to authenticate token////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//route middleware to verify users token
+router.use(function(req, res, next){
+    // check header or url parameters or post parameters for token
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+    //decode token
+    if(token){
+        //lets verify that token boyo
+        jwt.verify(token, app.get('superSecret'), function(err, decoded){
+           if( err ) {
+               return res.josn({ success : false, message: 'failed to authenticate in middleware'});
+           } else{
+               //if everything works out we save the request for use in other routes
+                req.decoded = decoded;
+                console.log("authenticated the token");
+                next();
+            }
+        });
+    } else{
+
+        //if there is no token return error
+        return res.status(403).send({
+            success: false,
+            message: 'no token provided'
+        });
+
+    }
+});
+
 
 /////Routes for dogssss/////////////////////////////////
 ////////////////////////////////////////////////////////
