@@ -8,4 +8,4 @@ var ReviewSchema   = new Schema({
     review_text: String
 });
 
-module.exports = mongoose.model('Bear', ReviewSchema);
+module.exports = mongoose.model('Review', ReviewSchema);

@@ -251,7 +251,7 @@ router.route('/parks/:park_id')
         var id = new ObjectId(req.params.park_id.toString());
 
 
-        Park_Model.findById( id , function(err, dog){
+        Park_Model.findById( id , function(err, park){
             if(err){res.send(err);}
 
             if(req.body.name!==undefined){
@@ -281,7 +281,7 @@ router.route('/parks/:park_id')
             }
 
             // save the dog
-            dog.save(function(err) {
+            park.save(function(err) {
                 if (err)
                     res.send(err);
 
@@ -302,15 +302,14 @@ router.route('/parks/:park_id')
         road_side: Boolean*/
 
 router.route('/parks/:park_id/checkin/:dog_id')
-//adding a friend to a dogs friend list
+//check a dog in to a park
     .put(function(req, res){
-        // use our dog model to find the dog we want
-        //lets convert into an object id
+        //find the park we want to add the dogs too
         var ObjectId = mongoose.Types.ObjectId;
         var id = new ObjectId(req.params.park_id.toString());
 
 
-        Dog_Model.findById( id , function(err, park){
+        Park_Model.findById( id , function(err, park){
 
             park.dogs_there.push(req.params.dog_id.toString());
 
@@ -323,6 +322,51 @@ router.route('/parks/:park_id/checkin/:dog_id')
             });
         })
 
+    });
+/////////////////////////end of parks routes//////////////////////////////
+
+///////////////////////////////////Reviews/////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+router.route('/reviews')
+//adding reviews
+    .post(function(req, res){
+        var review = new Review(); // create the instance of the dog model
+
+        review.user = req.body.user;
+        review.park = req.body.park;
+        review.rating = req.body.rating;
+        review.review_text = req.body.review_text;
+
+
+        //save the review and check for errors
+        review.save( function(err) {
+            if(err){
+                res.send(err);//send error
+            }
+            //send successful response
+            res.json({message: 'review created!'});
+        });
+    })
+
+    .get(function(req, res){
+        Review.find(function(err, reviews){
+            if(err)res.send(err);
+
+            res.json(reviews);
+        });
+    });
+
+//now we need to get all reviews for a certain park
+router.route('/reviews/:park_id')
+    .get(function(req, res){
+        console.log("we are about to search for reviews");
+        Review.find( {park : req.params.park_id}, function(err, reviews){
+
+            console.log("we are finding the parks");
+            res.json(reviews);
+
+        });
     });
 
 // test route to make sure everything is working (accessed at GET http://localhost:3000/api)
