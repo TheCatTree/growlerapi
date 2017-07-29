@@ -7,7 +7,12 @@ var bodyParser = require('body-parser');
 //connecting to mongo
 var mongodb = require('mongodb');
 var mongoose = require('mongoose');
-var db = mongoose.connect('mongodb://localhost:27017'); //connect to out db
+var config = require('./config'); // get our config file
+var db = mongoose.connect(config.database); //connect to out db
+
+
+var jwt    = require('jsonwebtoken'); // used to create, sign, and verify tokens
+
 
 //pulling in our schemas
 var Dog = require('./schemas/dog');
@@ -34,6 +39,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+app.set('superSecret', config.secret);
+
 //ROUTES FOR OUR API//
 //////////////////////
 var router = express.Router();
@@ -46,6 +54,69 @@ router.use(function(req, res, next) {
     next(); // make sure we go to the next routes and don't stop here
 });
 
+/////////////users routes//////////////////////////////
+////////////////////////////////////////////////////////
+router.route('/signup')
+//create a user
+    .post( function(req, res){
+
+        var user = new User(); // create the instance of the dog model
+
+        user.name = req.body.name;
+        user.password = req.body.password;
+
+        //save the user and check for errors
+        user.save( function(err) {
+            if(err){
+                res.send(err);//send error
+            }
+            //send successful response
+            res.json({message: 'User created!'});
+        });
+
+    })
+
+    .get(function(req, res){
+        User.find(function(err, user){
+            if(err)res.send(err);
+
+            res.json(user);
+        });
+    });
+
+
+router.route('/authenticate')
+
+    .post(function(req, res){ //send with name and pass
+        User.findOne({name:req.body.name}, function( err, user){
+            if(err)throw err;
+
+            if(!user){res.json({ success: false, message: 'Authentication failed. User not found.' });}
+
+            else if(user){
+                if(user.password !== req.body.password){
+                    res.json({ success: false, message: 'Auth failed'});
+                }else{
+
+                    //user matched
+                    // if user is found and password is right
+                    // create a token
+                    var token = jwt.sign(user, app.get('superSecret'), {
+                        expiresIn: 60*60*24 // expires in 24 hours
+                    });
+
+                    // return the information including token as JSON
+                    res.json({
+                        success: true,
+                        message: 'Enjoy your token!',
+                        token: token
+                    });
+
+                }
+            }
+
+        })
+    });
 
 /////Routes for dogssss/////////////////////////////////
 ////////////////////////////////////////////////////////
