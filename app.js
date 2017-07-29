@@ -3,6 +3,7 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
 //connecting to mongo
 var mongodb = require('mongodb');
@@ -28,6 +29,9 @@ User_Model = db.model('User');
 
 
 var app = express();
+
+//enable cors for all routes
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -132,7 +136,7 @@ router.use(function(req, res, next){
         //lets verify that token boyo
         jwt.verify(token, app.get('superSecret'), function(err, decoded){
            if( err ) {
-               return res.josn({ success : false, message: 'failed to authenticate in middleware'});
+               return res.json({ success : false, message: 'failed to authenticate in middleware'});
            } else{
                //if everything works out we save the request for use in other routes
                 req.decoded = decoded;
