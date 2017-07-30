@@ -7,7 +7,7 @@ var ParkSchema   = new Schema({
     leash_status: String,
     dogs_there: [String],
     leash_times: String,
-    road_side: Boolean
+    road_side: String
 });
 
 module.exports = mongoose.model('Park', ParkSchema);
